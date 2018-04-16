@@ -98,4 +98,58 @@ normalized_listings.head()
 norm_train_df = normalized_listings.copy().iloc[0:2792]
 norm_test_df = normalized_listings.copy().iloc[2792:]
 ```
-multi-variable 
+## multi-variable 
+use ```distance.euclidean```function to calculate distance from ```from scipy.spatial import distance```
+```
+from scipy.spatial import distance
+
+first_listing = normalized_listings.iloc[0][['accommodates', 'bathrooms']]
+fifth_listing = normalized_listings.iloc[20][['accommodates', 'bathrooms']]
+first_fifth_distance = distance.euclidean(first_listing, fifth_listing)
+first_fifth_distance
+
+
+def predict_price_multivariate(new_listing_value,feature_columns):
+    temp_df = norm_train_df
+    temp_df['distance'] = distance.cdist(temp_df[feature_columns],[new_listing_value[feature_columns]])
+    temp_df = temp_df.sort_values('distance')
+    knn_5 = temp_df.price.iloc[:5]
+    predicted_price = knn_5.mean()
+    return(predicted_price)
+
+cols = ['accommodates', 'bathrooms']
+norm_test_df['predicted_price'] = norm_test_df[cols].apply(predict_price_multivariate,feature_columns=cols,axis=1)    
+norm_test_df['squared_error'] = (norm_test_df['predicted_price'] - norm_test_df['price'])**(2)
+mse = norm_test_df['squared_error'].mean()
+rmse = mse ** (1/2)
+print(rmse)
+```
+use sklean to do KNN
+```
+from sklearn.neighbors import KNeighborsRegressor
+cols = ['accommodates','bedrooms']
+knn = KNeighborsRegressor()
+knn.fit(norm_train_df[cols], norm_train_df['price'])
+two_features_predictions = knn.predict(norm_test_df[cols])
+
+from sklearn.metrics import mean_squared_error
+
+two_features_mse = mean_squared_error(norm_test_df['price'], two_features_predictions)
+two_features_rmse = two_features_mse ** (1/2)
+print(two_features_rmse)
+from sklearn.metrics import mean_squared_error
+```
+by default, n_neighbors=5
+
+more features
+```
+knn = KNeighborsRegressor()
+
+cols = ['accommodates','bedrooms','bathrooms','beds','minimum_nights','maximum_nights','number_of_reviews']
+
+knn.fit(norm_train_df[cols], norm_train_df['price'])
+four_features_predictions = knn.predict(norm_test_df[cols])
+four_features_mse = mean_squared_error(norm_test_df['price'], four_features_predictions)
+four_features_rmse = four_features_mse ** (1/2)
+four_features_rmse
+```
