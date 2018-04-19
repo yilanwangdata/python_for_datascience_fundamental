@@ -15,7 +15,7 @@ from sklearn.datasets.samples_generator import make_blobs
 X, y = make_blobs(n_samples=50, centers=2,
                   random_state=0, cluster_std=0.60)
 plt.scatter(X[:, 0], X[:, 1], c=y, s=50, cmap='autumn')
-
+```
 draw some pictures to get a better understanding
 ```
 xfit = np.linspace(-1, 3.5)
@@ -83,3 +83,110 @@ the boundary is decided by support vectors, sklearn has the direct function to g
 ```
 model.support_vectors_
 ```
+to show that even we increase the number of nodes in each side, as long as the position of SV is fixed, the boundary won't change
+```
+def plot_svm(N=10, ax=None):
+    X, y = make_blobs(n_samples=200, centers=2,
+                      random_state=0, cluster_std=0.60)
+    X = X[:N]
+    y = y[:N]
+    model = SVC(kernel='linear', C=1E10)
+    model.fit(X, y)
+    
+    ax = ax or plt.gca()
+    ax.scatter(X[:, 0], X[:, 1], c=y, s=50, cmap='autumn')
+    ax.set_xlim(-1, 4)
+    ax.set_ylim(-1, 6)
+    plot_svc_decision_function(model, ax)
+
+fig, ax = plt.subplots(1, 2, figsize=(16, 6))
+fig.subplots_adjust(left=0.0625, right=0.95, wspace=0.1)
+for axi, N in zip(ax, [60, 120]):
+    plot_svm(N, axi)
+    axi.set_title('N = {0}'.format(N))
+```
+for non-linear classifcation, we create a circle shape to probe kernel=linear cannot deal that well
+```
+from sklearn.datasets.samples_generator import make_circles
+X, y = make_circles(100, factor=.1, noise=.1)
+
+clf = SVC(kernel='linear').fit(X, y)
+
+plt.scatter(X[:, 0], X[:, 1], c=y, s=50, cmap='autumn')
+plot_svc_decision_function(clf, plot_support=False);
+```
+
+## use kernal function do deal with non-linear problem
+```
+from mpl_toolkits import mplot3d
+r = np.exp(-(X ** 2).sum(1))
+def plot_3D(elev=30, azim=30, X=X, y=y):
+    ax = plt.subplot(projection='3d')
+    ax.scatter3D(X[:, 0], X[:, 1], r, c=y, s=50, cmap='autumn')
+    ax.view_init(elev=elev, azim=azim)
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('r')
+
+plot_3D(elev=45, azim=45, X=X, y=y)
+```
+Gaussian Radial basis function kernel--a commonly used kernel function in SVM
+```
+clf = SVC(kernel='rbf', C=1E6)
+clf.fit(X, y)
+```
+in this time, classification looks good
+```
+plt.scatter(X[:, 0], X[:, 1], c=y, s=50, cmap='autumn')
+plot_svc_decision_function(clf)
+plt.scatter(clf.support_vectors_[:, 0], clf.support_vectors_[:, 1],
+            s=300, lw=1, facecolors='none');
+```
+
+## soft margin
+create a more discrete/expanded plots graph, (cluster_std more large)
+```
+X, y = make_blobs(n_samples=100, centers=2,
+                  random_state=0, cluster_std=0.8)
+plt.scatter(X[:, 0], X[:, 1], c=y, s=50, cmap='autumn');
+```
+use linear method but diffrent C so observe the result
+```
+X, y = make_blobs(n_samples=100, centers=2,
+                  random_state=0, cluster_std=0.8)
+
+fig, ax = plt.subplots(1, 2, figsize=(16, 6))
+fig.subplots_adjust(left=0.0625, right=0.95, wspace=0.1)
+```
+set up c=10 and c=0.1 a strict and loose
+```
+for axi, C in zip(ax, [10.0, 0.1]):
+    model = SVC(kernel='linear', C=C).fit(X, y)
+    axi.scatter(X[:, 0], X[:, 1], c=y, s=50, cmap='autumn')
+    plot_svc_decision_function(model, axi)
+    axi.scatter(model.support_vectors_[:, 0],
+                model.support_vectors_[:, 1],
+                s=300, lw=1, facecolors='none');
+    axi.set_title('C = {0:.1f}'.format(C), size=14)
+```
+set gamma, bigger gamma--complext modle--high level dimentions  
+
+gamma only used in RBF
+```
+X, y = make_blobs(n_samples=100, centers=2,
+                  random_state=0, cluster_std=1.1)
+
+fig, ax = plt.subplots(1, 2, figsize=(16, 6))
+fig.subplots_adjust(left=0.0625, right=0.95, wspace=0.1)
+
+for axi, gamma in zip(ax, [10.0, 0.1]):
+    model = SVC(kernel='rbf', gamma=gamma).fit(X, y)
+    axi.scatter(X[:, 0], X[:, 1], c=y, s=50, cmap='autumn')
+    plot_svc_decision_function(model, axi)
+    axi.scatter(model.support_vectors_[:, 0],
+                model.support_vectors_[:, 1],
+                s=300, lw=1, facecolors='none');
+    axi.set_title('gamma = {0:.1f}'.format(gamma), size=14)
+```
+
+## Face Recognition
