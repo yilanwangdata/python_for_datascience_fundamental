@@ -1,4 +1,4 @@
-# Sklear_standarization
+# Skleanr_standarization
 ```
 import pandas as pd
 import numpy as np
