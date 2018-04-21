@@ -45,3 +45,44 @@ B=constant
 
 Drop-out
 
+```
+import numpy as np
+import matplotlib.pyplot as plt
+```
+set the plt parameters
+```
+plt.rcParams['figure.figsize'] = (10.0, 8.0)
+plt.rcParams['image.interpolation']='nearest'
+plt.rcParams['image.cmap']='gray'
+```
+make random reproduce generation
+```
+np.random.seed(0)
+```
+get a matrix by 0, the input of np.zeros()should be one element, by defualt, type is float
+```
+N = 100 # number of points per class
+D = 2 # dimensionality
+K = 3 # number of classes
+X = np.zeros((N*K,D))
+y = np.zeros(N*K, dtype='uint8')
+```
+get a list of number randomly
+```
+
+for j in xrange(K):
+  ix = range(N*j,N*(j+1))
+  r = np.linspace(0.0,1,N) # radius
+  t = np.linspace(j*4,(j+1)*4,N) + np.random.randn(N)*0.2 # theta
+  X[ix] = np.c_[r*np.sin(t), r*np.cos(t)]
+  y[ix] = j
+```
+show it
+```
+fig = plt.figure()
+plt.scatter(X[:, 0], X[:, 1], c=y, s=40, cmap=plt.cm.Spectral)
+plt.xlim([-1,1])
+plt.ylim([-1,1])
+plt.show()
+```
+
